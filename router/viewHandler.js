@@ -7,6 +7,7 @@ import { userInfo } from '../util/userInfo.js'
 let mainElement = document.querySelector('#container #content');
 let headerElement = document.querySelector('#container header');
 function navView(ctx, next) {
+    debugger;
     render(templates.getNavTemplate(), headerElement);
     next();
 }

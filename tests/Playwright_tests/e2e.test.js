@@ -35,36 +35,31 @@ describe("e2e tests", () => {
     
     describe("authentication", () => {
         test("register makes correct api call", async () => {
-            //arrange
             await page.goto(host);
             await page.click("text=Register");
             await page.waitForSelector('form');
-            let random = Math.floor(Math.random()*10000);
-            user.email = `abv${random}@abv.bg`;
+            let random = Math.floor(Math.random() *10000);
+            user.email = `user_email${random}@bv.bg`;
 
-            //act
             await page.locator('#email').fill(user.email);
             await page.locator('#password').fill(user.password);
             await page.locator('#repeatPassword').fill(user.confirmPass);
+
             let [response] = await Promise.all([
                 page.waitForResponse(response => response.url().includes("/users/register") && response.status() == 200),
                 page.click('[type="submit"]')
             ])
             let userData = await response.json();
 
-            //assert
-            await expect(response.ok()).toBeTruthy();
+            expect(response.ok()).toBeTruthy();
             expect(userData.email).toBe(user.email);
             expect(userData.password).toBe(user.password);
         })
-
-        test("login makes correct API call", async()=>{
-            //arrange
+        test ("User login makes correct api call", async () => {
             await page.goto(host);
             await page.click('text=Login');
             await page.waitForSelector('form');
 
-            //act
             await page.locator('#email').fill(user.email);
             await page.locator('#password').fill(user.password);
             let [response] = await Promise.all([
@@ -73,47 +68,37 @@ describe("e2e tests", () => {
             ])
             let userData = await response.json();
 
-
-            //assert
-            await expect(response.ok()).toBeTruthy();
+            expect(response.ok()).toBeTruthy();
             expect(userData.email).toBe(user.email);
             expect(userData.password).toBe(user.password);
         })
 
-        test('logout makes correct api call', async () => {
-            //arrange
+        test ('logout makes correct api call', async () => {
             await page.goto(host);
             await page.click('text=Login');
             await page.waitForSelector('form');
             await page.locator('#email').fill(user.email);
             await page.locator('#password').fill(user.password);
             await page.click('[type="submit"]');
-
-            //act 
             let [response] = await Promise.all([
-                page.waitForResponse(response => response.url().includes("/users/logout") && response.status() == 204 ),
+                page.waitForResponse(response => response.url().includes("/users/logout") && response.status() == 204),
                 page.click('nav >> text=Logout')
             ])
-
             expect(response.ok()).toBeTruthy();
-            await page.waitForSelector('nav >> text=Login')
+            await page.waitForSelector('nav >> text=Login');
             expect(page.url()).toBe(host + '/');
         })
     });
 
     describe("navbar", () => {
-        test("logged user should see correct navigation buttons", async()=>{
-            //arrange
+        test('navigation for logged in user', async () => {
             await page.goto(host);
-
-            //act
             await page.click('text=Login');
             await page.waitForSelector('form');
             await page.locator('#email').fill(user.email);
             await page.locator('#password').fill(user.password);
             await page.click('[type="submit"]');
 
-            //assert
             await expect(page.locator('nav >> text=Theater')).toBeVisible();
             await expect(page.locator('nav >> text=Create Event')).toBeVisible();
             await expect(page.locator('nav >> text=Profile')).toBeVisible();
@@ -121,12 +106,8 @@ describe("e2e tests", () => {
             await expect(page.locator('nav >> text=Login')).toBeHidden();
             await expect(page.locator('nav >> text=Register')).toBeHidden();
         })
-
-        test("guest user should see correct navigation buttons", async ()=>{
-            //act
+        test('navigation for guest user', async()=>{
             await page.goto(host);
-
-            //assert
             await expect(page.locator('nav >> text=Theater')).toBeVisible();
             await expect(page.locator('nav >> text=Create Event')).toBeHidden();
             await expect(page.locator('nav >> text=Profile')).toBeHidden();
@@ -145,70 +126,61 @@ describe("e2e tests", () => {
             await page.locator('#password').fill(user.password);
             await page.click('[type="submit"]');
         })
+        
+        test('create makes correct api call', async () => {
+            await page.click('a[href="/create"]');
+            await page.waitForSelector('form');
+            await page.locator('#title').fill("random title");
+            await page.locator('#date').fill("random date");
+            await page.locator('#author').fill("random author");
+            await page.locator('#description').fill("random description");
+            await page.locator('#imageUrl').fill("C:\Users\skyli\Desktop\Exam Front End Test Automation 2\Task-2 Resources\images\To-kill-a-mockingbird.jpg");
 
-        test('Create makes correct API call', async()=>{
-            //arrange
-            await page.click('nav >> text=Create Event');
-            await page.waitForSelector("form");
-
-            //act
-            await page.fill("#title", "Random title");
-            await page.fill("#date", "Random date");
-            await page.fill("#author", "Random author");
-            await page.fill("#description", "Random description");
-            await page.fill("#imageUrl", "/images/Moulin-Rouge!-The-Musical.jpg");
             let [response] = await Promise.all([
-                page.waitForResponse(response => response.url().includes("/data/theaters") && response.status() == 200 ),
+                page.waitForResponse(response => response.url().includes("/data/theaters") && response.status() == 200),
                 page.click('[type="submit"]')
-            ]);
-            let eventData = await response.json();
+            ])
+            let EventData = await response.json();
 
-            //assert
             expect(response.ok()).toBeTruthy();
-            expect(eventData.title).toEqual("Random title");
-            expect(eventData.author).toEqual("Random author");
-            expect(eventData.date).toEqual("Random date");
-            expect(eventData.description).toEqual("Random description");
-            expect(eventData.imageUrl).toEqual("/images/Moulin-Rouge!-The-Musical.jpg");
+            expect(EventData.title).toEqual("random title");
+            expect(EventData.date).toEqual("random date");
+            expect(EventData.author).toEqual("random author");
+            expect(EventData.description).toEqual("random description");
+            expect(EventData.imageUrl).toEqual("C:\Users\skyli\Desktop\Exam Front End Test Automation 2\Task-2 Resources\images\To-kill-a-mockingbird.jpg");
         })
-
-        test('edit makes correct API call', async () => {
-            //arrange
-            await page.click("nav >> text=Profile");
-            await page.locator("text=Details").first().click();
-            await page.click("text=Edit");
+        test('edit makes correct api call', async () => {
+            await page.click('nav >> text=Profile');
+            await page.locator('text=Details').first().click();
+            await page.click('text=Edit');
             await page.waitForSelector('form');
 
-            //act
-            await page.fill("#title", "Random edited_title");
-            let [response] = await Promise.all([
-                page.waitForResponse(response => response.url().includes("/data/theaters") && response.status() == 200 ),
-                page.click('[type="submit"]')
-            ]);
-            let eventData = await response.json();
+            await page.fill('#description', "Edited description");
+            await page.fill('#imageUrl', "https://media.entertainmentearth.com/assets/images/f9551447c87542f8bf84954fa811338flg.jpg");
 
-            //assert
-            expect(response.ok()).toBeTruthy();
-            expect(eventData.title).toEqual("Random edited_title");
-            expect(eventData.author).toEqual("Random author");
-            expect(eventData.date).toEqual("Random date");
-            expect(eventData.description).toEqual("Random description");
-            expect(eventData.imageUrl).toEqual("/images/Moulin-Rouge!-The-Musical.jpg");
+            let [response] = await Promise.all([
+                page.waitForResponse(response => response.url().includes("/data/theaters") && response.status() == 200),
+                page.click('[type="submit"]')
+            ])
+            let EventData = await response.json();
+
+            expect(response.ok()).toBeTruthy;
+            expect(EventData.title).toEqual("random title");
+            expect(EventData.date).toEqual("random date");
+            expect(EventData.author).toEqual("random author");
+            expect(EventData.description).toEqual("Edited description");
+            expect(EventData.imageUrl).toEqual("https://media.entertainmentearth.com/assets/images/f9551447c87542f8bf84954fa811338flg.jpg");
         })
 
-        test("delete makes correct API call", async()=>{
-            //arrange
-            await page.click("nav >> text=Profile");
-            await page.locator("text=Details").first().click();
+        test('delete makes correct api call', async () => {
+            await page.click('nav >> text=Profile');
+            await page.locator('text=Details').first().click();
 
-            //act
             let [response] = await Promise.all([
-                page.waitForResponse(response => response.url().includes("/data/theaters") && response.status() == 200 ),
+                page.waitForResponse(response => response.url().includes("/data/theaters") && response.status() == 200),
                 page.on('dialog', dialog => dialog.accept()),
-                page.click('text=delete')
+                await page.click('text=Delete')
             ]);
-
-            //assert
             expect(response.ok()).toBeTruthy();
         })
     })
